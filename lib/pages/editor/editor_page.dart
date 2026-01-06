@@ -70,7 +70,9 @@ class EditorPage extends StatelessWidget {
               splashFactory: NoSplash.splashFactory,
               child: Row(
                 children: [
-                  Icon(Icons.keyboard_backspace, color: Theme.of(context).colorScheme.onBackground, size: 26.0),
+                  Icon(Icons.keyboard_backspace,
+                      color: Theme.of(context).colorScheme.onBackground,
+                      size: 26.0),
                 ],
               ),
             ),
@@ -78,7 +80,6 @@ class EditorPage extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                
                 IconButton(
                   icon: Icon(Icons.file_upload_outlined, size: 26.0),
                   color: Theme.of(context).colorScheme.onBackground,
@@ -132,7 +133,8 @@ class EditorPage extends StatelessWidget {
                     ? Stack(
                         children: [
                           VideoPlayer(_.videoController!),
-                          _.isCropped && _.selectedOptions != SelectedOptions.CROP
+                          _.isCropped &&
+                                  _.selectedOptions != SelectedOptions.CROP
                               ? CustomPaint(
                                   painter: CropPainter(
                                     x: _.cropX,
@@ -147,11 +149,14 @@ class EditorPage extends StatelessWidget {
                               : SizedBox.shrink(),
                           ..._.nTexts > 0
                               ? _.texts.map((TextTransformation text) {
-                                  if (text.shouldDisplay(_.msVideoPosition)) return _getTextOverlay(text);
+                                  if (text.shouldDisplay(_.msVideoPosition))
+                                    return _getTextOverlay(text);
                                   return SizedBox.shrink();
                                 }).toList()
                               : [SizedBox.shrink(), SizedBox.shrink()],
-                          _.selectedOptions == SelectedOptions.CROP ? CropGrid() : SizedBox.shrink(),
+                          _.selectedOptions == SelectedOptions.CROP
+                              ? CropGrid()
+                              : SizedBox.shrink(),
                         ],
                       )
                     : SizedBox(),
@@ -176,13 +181,16 @@ class EditorPage extends StatelessWidget {
                   children: [
                     Text(
                       _.videoPositionString,
-                      style:
-                          Theme.of(context).textTheme.bodySmall!.copyWith(fontSize: 18.0, fontWeight: FontWeight.bold),
+                      style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                          fontSize: 18.0, fontWeight: FontWeight.bold),
                     ),
                     Text(
                       '/${_.videoDurationString}',
                       style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                            color: Theme.of(context).colorScheme.onBackground.withOpacity(0.25),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onBackground
+                                .withOpacity(0.25),
                             fontWeight: FontWeight.bold,
                           ),
                     ),
@@ -191,7 +199,12 @@ class EditorPage extends StatelessWidget {
                 Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(50.0),
-                    border: Border.all(color: Theme.of(context).colorScheme.onBackground.withOpacity(0.35), width: 2.0),
+                    border: Border.all(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onBackground
+                            .withOpacity(0.35),
+                        width: 2.0),
                   ),
                   height: 30.0,
                   width: 30.0,
@@ -200,7 +213,9 @@ class EditorPage extends StatelessWidget {
                     onPressed: () {
                       _.isVideoPlaying ? _.pauseVideo() : _.playVideo();
                     },
-                    icon: _.isVideoPlaying ? Icon(Icons.pause_sharp) : Icon(Icons.play_arrow),
+                    icon: _.isVideoPlaying
+                        ? Icon(Icons.pause_sharp)
+                        : Icon(Icons.play_arrow),
                     splashRadius: 16.0,
                   ),
                 ),
@@ -253,6 +268,9 @@ class EditorPage extends StatelessWidget {
               // Video Timeline
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
+                physics: _.isTimelineScrollLocked
+                    ? const NeverScrollableScrollPhysics()
+                    : const AlwaysScrollableScrollPhysics(),
                 controller: _.scrollController,
                 child: Column(
                   children: [
@@ -261,19 +279,23 @@ class EditorPage extends StatelessWidget {
                     // -------------------------------
                     Row(
                       children: [
-                        SizedBox(width: MediaQuery.of(context).size.width * 0.5),
+                        SizedBox(
+                            width: MediaQuery.of(context).size.width * 0.5),
                         ...List.generate(
                           _.videoDuration.toInt() + 1,
                           (index) {
                             if (index == _.videoDuration.toInt()) {
                               return _lastSecondContainerTimeline(
-                                  context, index, (_.videoDurationMs % 1000) / 1000 * 50.0);
+                                  context,
+                                  index,
+                                  (_.videoDurationMs % 1000) / 1000 * 50.0);
                             } else {
                               return _secondContainerTimeline(context, index);
                             }
                           },
                         ),
-                        SizedBox(width: MediaQuery.of(context).size.width * 0.5),
+                        SizedBox(
+                            width: MediaQuery.of(context).size.width * 0.5),
                       ],
                     ),
                     SizedBox(height: 12.0),
@@ -296,8 +318,14 @@ class EditorPage extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         border: Border(
-          top: BorderSide(color: Theme.of(context).colorScheme.onBackground.withOpacity(0.2), width: 1.0),
-          bottom: BorderSide(color: Theme.of(context).colorScheme.onBackground.withOpacity(0.2), width: 1.0),
+          top: BorderSide(
+              color:
+                  Theme.of(context).colorScheme.onBackground.withOpacity(0.2),
+              width: 1.0),
+          bottom: BorderSide(
+              color:
+                  Theme.of(context).colorScheme.onBackground.withOpacity(0.2),
+              width: 1.0),
         ),
       ),
       width: 50.0, // Adjust the width of each timeline item
@@ -325,7 +353,10 @@ class EditorPage extends StatelessWidget {
                 height: 6.0,
                 width: 2.0,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.onBackground.withOpacity(0.2),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onBackground
+                      .withOpacity(0.2),
                   borderRadius: BorderRadius.circular(2.0),
                 )),
             SizedBox(width: 10.0),
@@ -339,8 +370,14 @@ class EditorPage extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         border: Border(
-          top: BorderSide(color: Theme.of(context).colorScheme.onBackground.withOpacity(0.2), width: 1.0),
-          bottom: BorderSide(color: Theme.of(context).colorScheme.onBackground.withOpacity(0.2), width: 1.0),
+          top: BorderSide(
+              color:
+                  Theme.of(context).colorScheme.onBackground.withOpacity(0.2),
+              width: 1.0),
+          bottom: BorderSide(
+              color:
+                  Theme.of(context).colorScheme.onBackground.withOpacity(0.2),
+              width: 1.0),
         ),
       ),
       width: width, // Adjust the width of each timeline item
@@ -371,7 +408,10 @@ class EditorPage extends StatelessWidget {
                       height: 6.0,
                       width: 2.0,
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.onBackground.withOpacity(0.2),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onBackground
+                            .withOpacity(0.2),
                         borderRadius: BorderRadius.circular(2.0),
                       ),
                     ),
@@ -406,7 +446,8 @@ class EditorPage extends StatelessWidget {
               Flexible(
                 child: InkWell(
                   onTap: () {
-                    if (_editorController.selectedOptions != SelectedOptions.TEXT) {
+                    if (_editorController.selectedOptions !=
+                        SelectedOptions.TEXT) {
                       _editorController.selectedOptions = SelectedOptions.TEXT;
                     }
                     _editorController.selectedTextId = text.id;
@@ -417,7 +458,9 @@ class EditorPage extends StatelessWidget {
                   },
                   child: Container(
                     decoration: BoxDecoration(
-                      color: text.backgroundColor != '' ? Color(int.parse(text.backgroundColor)) : Colors.transparent,
+                      color: text.backgroundColor != ''
+                          ? Color(int.parse(text.backgroundColor))
+                          : Colors.transparent,
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(1.0),

@@ -15,7 +15,8 @@ import 'package:shital_video_editor/shared/helpers/files.dart';
 import 'package:shital_video_editor/shared/helpers/snackbar.dart';
 import 'package:shital_video_editor/shared/helpers/video.dart';
 import 'package:get/get.dart';
-import 'package:shital_video_editor/shared/translations/translation_keys.dart' as translations;
+import 'package:shital_video_editor/shared/translations/translation_keys.dart'
+    as translations;
 
 import 'package:intl/intl.dart';
 import 'package:shital_video_editor/models/project.dart';
@@ -40,26 +41,39 @@ class EditorController extends GetxController {
   ScrollController scrollController = ScrollController();
 
   Duration? _position = Duration(seconds: 0);
+  bool isTimelineScrollLocked = false;
 
   get videoController => _videoController;
-  bool get isVideoInitialized => _videoController != null && _videoController!.value.isInitialized;
-  bool get isVideoPlaying => _videoController != null && _videoController!.value.isPlaying;
-  double get videoAspectRatio => isVideoInitialized ? _videoController!.value.aspectRatio : 1.0;
+  bool get isVideoInitialized =>
+      _videoController != null && _videoController!.value.isInitialized;
+  bool get isVideoPlaying =>
+      _videoController != null && _videoController!.value.isPlaying;
+  double get videoAspectRatio =>
+      isVideoInitialized ? _videoController!.value.aspectRatio : 1.0;
   double get videoPosition => (_position!.inMilliseconds.toDouble() / 1000);
   int get msVideoPosition => _position!.inMilliseconds;
-  double get videoDuration => isVideoInitialized ? _videoController!.value.duration.inSeconds.toDouble() : 0.0;
-  double get videoDurationMs => isVideoInitialized ? _videoController!.value.duration.inMilliseconds.toDouble() : 0.0;
-  int get exportVideoDuration => isVideoInitialized ? _videoController!.value.duration.inMilliseconds : 0;
+  double get videoDuration => isVideoInitialized
+      ? _videoController!.value.duration.inSeconds.toDouble()
+      : 0.0;
+  double get videoDurationMs => isVideoInitialized
+      ? _videoController!.value.duration.inMilliseconds.toDouble()
+      : 0.0;
+  int get exportVideoDuration =>
+      isVideoInitialized ? _videoController!.value.duration.inMilliseconds : 0;
   int get afterExportVideoDuration =>
-      project.transformations.trimEnd.inMilliseconds - project.transformations.trimStart.inMilliseconds;
+      project.transformations.trimEnd.inMilliseconds -
+      project.transformations.trimStart.inMilliseconds;
 
-  String get videoPositionString => '${convertTwo(_position!.inMinutes)}:${convertTwo(_position!.inSeconds)}';
+  String get videoPositionString =>
+      '${convertTwo(_position!.inMinutes)}:${convertTwo(_position!.inSeconds)}';
   String get videoDurationString => isVideoInitialized
       ? '${convertTwo(_videoController!.value.duration.inMinutes)}:${convertTwo(_videoController!.value.duration.inSeconds)}'
       : '00:00';
 
   bool get isHorizontal => videoWidth > videoHeight;
-  double get scalingFactor => isHorizontal ? videoWidth / (Get.width - 2 * 8.0) : videoHeight / (Get.height * 0.4);
+  double get scalingFactor => isHorizontal
+      ? videoWidth / (Get.width - 2 * 8.0)
+      : videoHeight / (Get.height * 0.4);
 
   // Variables to control the export process.
   int _bitrate = 2;
@@ -113,8 +127,12 @@ class EditorController extends GetxController {
   int get msAudioEnd => audioStart.inMilliseconds + afterExportVideoDuration;
 
   // Used for the progress bar in the audio start bottom sheet
-  int get relativeAudioPosition => audioPosition.inMilliseconds - audioStart.inMilliseconds;
-  bool get canSetAudioStart => hasAudio && isAudioInitialized && sAudioDuration > (afterExportVideoDuration / 1000);
+  int get relativeAudioPosition =>
+      audioPosition.inMilliseconds - audioStart.inMilliseconds;
+  bool get canSetAudioStart =>
+      hasAudio &&
+      isAudioInitialized &&
+      sAudioDuration > (afterExportVideoDuration / 1000);
 
   PlayerState? _audioPlayerState;
   PlayerState get audioPlayerState => _audioPlayerState ?? PlayerState.stopped;
@@ -176,7 +194,8 @@ class EditorController extends GetxController {
   get hasText => project.transformations.texts.isNotEmpty;
   get texts => project.transformations.texts..sort(textComparator);
   get nTexts => project.transformations.texts.length;
-  get selectedText => project.transformations.texts.firstWhere((element) => element.id == selectedTextId);
+  get selectedText => project.transformations.texts
+      .firstWhere((element) => element.id == selectedTextId);
   get selectedTextContent => selectedText.text;
   get selectedTextStartTime => selectedText.msStartTime;
   int get selectedTextDuration => selectedText.msDuration;
@@ -190,7 +209,9 @@ class EditorController extends GetxController {
   get videoHeight => _videoController!.value.size.height;
 
   get newStartWillOverlap => msVideoPosition + selectedTextDuration > trimEnd;
-  get isTooCloseToEnd => msVideoPosition >= trimEnd - 100; // Do not let users add text 100 ms close to the end.
+  get isTooCloseToEnd =>
+      msVideoPosition >=
+      trimEnd - 100; // Do not let users add text 100 ms close to the end.
 
   int textComparator(TextTransformation a, TextTransformation b) {
     if (selectedTextId == a.id) return 1;
@@ -203,7 +224,8 @@ class EditorController extends GetxController {
   // ------------------ CROP VARIABLES ------------------------
 
   bool get isCropped =>
-      project.transformations.cropWidth != videoWidth || project.transformations.cropHeight != videoHeight;
+      project.transformations.cropWidth != videoWidth ||
+      project.transformations.cropHeight != videoHeight;
 
   final GlobalKey cropKey = GlobalKey();
   final GlobalKey centerKey = GlobalKey();
@@ -216,19 +238,36 @@ class EditorController extends GetxController {
   final GlobalKey bottomKey = GlobalKey();
   final GlobalKey rightBottomKey = GlobalKey();
 
-  get globalCropPosition => (cropKey.currentContext!.findRenderObject() as RenderBox).localToGlobal(Offset.zero);
-  get globalCenterPosition => (centerKey.currentContext!.findRenderObject() as RenderBox).localToGlobal(Offset.zero);
-  get globalLeftTopPosition => (leftTopKey.currentContext!.findRenderObject() as RenderBox).localToGlobal(Offset.zero);
-  get globalTopPosition => (topKey.currentContext!.findRenderObject() as RenderBox).localToGlobal(Offset.zero);
+  get globalCropPosition =>
+      (cropKey.currentContext!.findRenderObject() as RenderBox)
+          .localToGlobal(Offset.zero);
+  get globalCenterPosition =>
+      (centerKey.currentContext!.findRenderObject() as RenderBox)
+          .localToGlobal(Offset.zero);
+  get globalLeftTopPosition =>
+      (leftTopKey.currentContext!.findRenderObject() as RenderBox)
+          .localToGlobal(Offset.zero);
+  get globalTopPosition =>
+      (topKey.currentContext!.findRenderObject() as RenderBox)
+          .localToGlobal(Offset.zero);
   get globalTopRightPosition =>
-      (rightTopKey.currentContext!.findRenderObject() as RenderBox).localToGlobal(Offset.zero);
-  get globalLeftPosition => (leftKey.currentContext!.findRenderObject() as RenderBox).localToGlobal(Offset.zero);
-  get globalRightPosition => (rightKey.currentContext!.findRenderObject() as RenderBox).localToGlobal(Offset.zero);
+      (rightTopKey.currentContext!.findRenderObject() as RenderBox)
+          .localToGlobal(Offset.zero);
+  get globalLeftPosition =>
+      (leftKey.currentContext!.findRenderObject() as RenderBox)
+          .localToGlobal(Offset.zero);
+  get globalRightPosition =>
+      (rightKey.currentContext!.findRenderObject() as RenderBox)
+          .localToGlobal(Offset.zero);
   get globalLeftBottomPosition =>
-      (leftBottomKey.currentContext!.findRenderObject() as RenderBox).localToGlobal(Offset.zero);
-  get globalBottomPosition => (bottomKey.currentContext!.findRenderObject() as RenderBox).localToGlobal(Offset.zero);
+      (leftBottomKey.currentContext!.findRenderObject() as RenderBox)
+          .localToGlobal(Offset.zero);
+  get globalBottomPosition =>
+      (bottomKey.currentContext!.findRenderObject() as RenderBox)
+          .localToGlobal(Offset.zero);
   get globalBottomRightPosition =>
-      (rightBottomKey.currentContext!.findRenderObject() as RenderBox).localToGlobal(Offset.zero);
+      (rightBottomKey.currentContext!.findRenderObject() as RenderBox)
+          .localToGlobal(Offset.zero);
 
   double _initX = 0;
   double get initX => _initX;
@@ -296,7 +335,8 @@ class EditorController extends GetxController {
     update();
   }
 
-  CropAspectRatio get cropAspectRatio => project.transformations.cropAspectRatio;
+  CropAspectRatio get cropAspectRatio =>
+      project.transformations.cropAspectRatio;
 
   // ------------------ END CROP VARIABLES ------------------------
 
@@ -346,7 +386,8 @@ class EditorController extends GetxController {
         project.transformations.cropWidth = _videoController!.value.size.width;
       }
       if (project.transformations.cropHeight == 0) {
-        project.transformations.cropHeight = _videoController!.value.size.height;
+        project.transformations.cropHeight =
+            _videoController!.value.size.height;
       }
 
       // Jump to the start if there is a trim start.
@@ -359,13 +400,15 @@ class EditorController extends GetxController {
         _position = _videoController!.value.position;
 
         // If the position is less than the trim start, jump to the start (if not in trim mode).
-        if (_position!.inMilliseconds < trimStart && selectedOptions != SelectedOptions.TRIM) {
+        if (_position!.inMilliseconds < trimStart &&
+            selectedOptions != SelectedOptions.TRIM) {
           jumpToStart();
           return;
         }
 
         // If the video has reached the end (or trimEnd), pause it and reset the position.
-        if (_position!.inMilliseconds >= trimEnd && selectedOptions != SelectedOptions.TRIM) {
+        if (_position!.inMilliseconds >= trimEnd &&
+            selectedOptions != SelectedOptions.TRIM) {
           jumpToStart();
           return;
         }
@@ -374,9 +417,13 @@ class EditorController extends GetxController {
         int posDif = _position!.inMilliseconds - previousPos!.inMilliseconds;
 
         // Animate the video timeline scroll position to match the video position.
-        if (!(scrollController.position.userScrollDirection != ScrollDirection.idle) && posDif > 0) {
-          double scrollPosition = ((_position!.inMilliseconds) * 0.001 * 50.0).ceilToDouble();
-          scrollController.animateTo(scrollPosition, duration: Duration(milliseconds: posDif), curve: Curves.linear);
+        if (!(scrollController.position.userScrollDirection !=
+                ScrollDirection.idle) &&
+            posDif > 0) {
+          double scrollPosition =
+              ((_position!.inMilliseconds) * 0.001 * 50.0).ceilToDouble();
+          scrollController.animateTo(scrollPosition,
+              duration: Duration(milliseconds: posDif), curve: Curves.linear);
         }
 
         update();
@@ -385,7 +432,8 @@ class EditorController extends GetxController {
     });
 
     scrollController.addListener(() {
-      if (scrollController.position.userScrollDirection != ScrollDirection.idle) {
+      if (scrollController.position.userScrollDirection !=
+          ScrollDirection.idle) {
         pauseVideo();
         updateVideoPosition(scrollController.position.pixels / 50.0);
       }
@@ -414,9 +462,12 @@ class EditorController extends GetxController {
       update();
     });
     audioScrollController.addListener(() {
-      if (audioScrollController.position.userScrollDirection != ScrollDirection.idle) {
-        int newPosInMilliseconds = ((audioScrollController.position.pixels / 12.0) * 1000).toInt();
-        project.transformations.audioStart = Duration(milliseconds: newPosInMilliseconds);
+      if (audioScrollController.position.userScrollDirection !=
+          ScrollDirection.idle) {
+        int newPosInMilliseconds =
+            ((audioScrollController.position.pixels / 12.0) * 1000).toInt();
+        project.transformations.audioStart =
+            Duration(milliseconds: newPosInMilliseconds);
         _audioPlayer.seek(Duration(milliseconds: newPosInMilliseconds));
       }
       update();
@@ -471,7 +522,10 @@ class EditorController extends GetxController {
     _videoController!.seekTo(Duration(milliseconds: (position * 1000).toInt()));
     if (isAudioInitialized) {
       // Go to the relative position in the audio.
-      _audioPlayer.seek(Duration(milliseconds: (position * 1000).toInt() + audioStart.inMilliseconds - trimStart));
+      _audioPlayer.seek(Duration(
+          milliseconds: (position * 1000).toInt() +
+              audioStart.inMilliseconds -
+              trimStart));
     }
     update();
   }
@@ -505,13 +559,15 @@ class EditorController extends GetxController {
   }
 
   jumpBack50ms() {
-    _videoController!.seekTo(Duration(milliseconds: _position!.inMilliseconds - 50));
+    _videoController!
+        .seekTo(Duration(milliseconds: _position!.inMilliseconds - 50));
     scrollController.jumpTo(scrollController.position.pixels - 2.5);
     update();
   }
 
   jumpForward50ms() {
-    _videoController!.seekTo(Duration(milliseconds: _position!.inMilliseconds + 50));
+    _videoController!
+        .seekTo(Duration(milliseconds: _position!.inMilliseconds + 50));
     scrollController.jumpTo(scrollController.position.pixels + 2.5);
     update();
   }
@@ -591,7 +647,8 @@ class EditorController extends GetxController {
 
   deleteSelectedText() {
     if (selectedTextId != '') {
-      project.transformations.texts.removeWhere((element) => element.id == selectedTextId);
+      project.transformations.texts
+          .removeWhere((element) => element.id == selectedTextId);
       selectedTextId = '';
       update();
     } else {
@@ -605,52 +662,69 @@ class EditorController extends GetxController {
   }
 
   updateTextFontSize(double fontSize) {
-    project.transformations.texts.firstWhere((element) => element.id == selectedTextId).fontSize = fontSize;
+    project.transformations.texts
+        .firstWhere((element) => element.id == selectedTextId)
+        .fontSize = fontSize;
     update();
   }
 
   updateFontColor(Color color) {
     print('Color: 0x${color.value.toRadixString(16)}');
-    project.transformations.texts.firstWhere((element) => element.id == selectedTextId).color =
-        '0x${color.value.toRadixString(16)}';
+    project.transformations.texts
+        .firstWhere((element) => element.id == selectedTextId)
+        .color = '0x${color.value.toRadixString(16)}';
     update();
   }
 
   updateBackgroundColor(Color color) {
-    project.transformations.texts.firstWhere((element) => element.id == selectedTextId).backgroundColor =
-        '0x${color.value.toRadixString(16)}';
+    project.transformations.texts
+        .firstWhere((element) => element.id == selectedTextId)
+        .backgroundColor = '0x${color.value.toRadixString(16)}';
     update();
   }
 
   clearBackgroundColor() {
-    project.transformations.texts.firstWhere((element) => element.id == selectedTextId).backgroundColor = '';
+    project.transformations.texts
+        .firstWhere((element) => element.id == selectedTextId)
+        .backgroundColor = '';
     update();
   }
 
   updateTextPosition(TextPosition position) {
-    project.transformations.texts.firstWhere((element) => element.id == selectedTextId).position = position;
+    project.transformations.texts
+        .firstWhere((element) => element.id == selectedTextId)
+        .position = position;
     update();
   }
 
   setTextStart() {
-    project.transformations.texts.firstWhere((element) => element.id == selectedTextId).msStartTime = msVideoPosition;
+    project.transformations.texts
+        .firstWhere((element) => element.id == selectedTextId)
+        .msStartTime = msVideoPosition;
     update();
   }
 
   setTextStartAndUpdateDuration() {
-    project.transformations.texts.firstWhere((element) => element.id == selectedTextId).msStartTime = msVideoPosition;
-    project.transformations.texts.firstWhere((element) => element.id == selectedTextId).msDuration =
-        trimEnd - msVideoPosition;
+    project.transformations.texts
+        .firstWhere((element) => element.id == selectedTextId)
+        .msStartTime = msVideoPosition;
+    project.transformations.texts
+        .firstWhere((element) => element.id == selectedTextId)
+        .msDuration = trimEnd - msVideoPosition;
     update();
   }
 
   updateTextDuration(int duration) {
-    project.transformations.texts.firstWhere((element) => element.id == selectedTextId).msDuration = duration;
+    project.transformations.texts
+        .firstWhere((element) => element.id == selectedTextId)
+        .msDuration = duration;
     update();
   }
 
   updateSelectedTextContent(String value) {
-    project.transformations.texts.firstWhere((element) => element.id == selectedTextId).text = value;
+    project.transformations.texts
+        .firstWhere((element) => element.id == selectedTextId)
+        .text = value;
     update();
   }
 
@@ -719,35 +793,43 @@ class EditorController extends GetxController {
         // 2. The cropY is the new Y position of the crop box. As we are trying to maintain a squared aspect ratio, the
         //    Y is always going to depend on how much the cropX has changed over time, in a 1:1 relation.
         cropX = (offset.dx + initX)
-            .clamp(max(0.0, initialCropX - initialCropY), initialCropWidth / scalingFactor + initialCropX)
+            .clamp(max(0.0, initialCropX - initialCropY),
+                initialCropWidth / scalingFactor + initialCropX)
             .toDouble();
         cropY = ((cropX - initialCropX) + initialCropY)
             .clamp(0.0, initialCropHeight / scalingFactor + initialCropY)
             .toDouble();
       case CropAspectRatio.RATIO_16_9:
         cropX = (offset.dx + initX)
-            .clamp(max(0.0, (initialCropX - (initialCropY * 16 / 9))), initialCropWidth / scalingFactor + initialCropX)
+            .clamp(max(0.0, (initialCropX - (initialCropY * 16 / 9))),
+                initialCropWidth / scalingFactor + initialCropX)
             .toDouble();
         cropY = ((cropX - initialCropX) * (9 / 16) + initialCropY)
             .clamp(0.0, initialCropHeight / scalingFactor + initialCropY)
             .toDouble();
       case CropAspectRatio.RATIO_9_16:
         cropX = (offset.dx + initX)
-            .clamp(max(0.0, (initialCropX - (initialCropY * 9 / 16))), initialCropWidth / scalingFactor + initialCropX)
+            .clamp(max(0.0, (initialCropX - (initialCropY * 9 / 16))),
+                initialCropWidth / scalingFactor + initialCropX)
             .toDouble();
         cropY = ((cropX - initialCropX) * (16 / 9) + initialCropY)
             .clamp(0.0, initialCropHeight / scalingFactor + initialCropY)
             .toDouble();
       case CropAspectRatio.RATIO_4_5:
         cropX = (offset.dx + initX)
-            .clamp(max(0.0, (initialCropX - (initialCropY * 4 / 5))), initialCropWidth / scalingFactor + initialCropX)
+            .clamp(max(0.0, (initialCropX - (initialCropY * 4 / 5))),
+                initialCropWidth / scalingFactor + initialCropX)
             .toDouble();
         cropY = ((cropX - initialCropX) * (5 / 4) + initialCropY)
             .clamp(0.0, initialCropHeight / scalingFactor + initialCropY)
             .toDouble();
       case CropAspectRatio.FREE:
-        cropX = (offset.dx + initX).clamp(0.0, initialCropWidth / scalingFactor + initialCropX).toDouble();
-        cropY = (offset.dy + initY).clamp(0.0, initialCropHeight / scalingFactor + initialCropY).toDouble();
+        cropX = (offset.dx + initX)
+            .clamp(0.0, initialCropWidth / scalingFactor + initialCropX)
+            .toDouble();
+        cropY = (offset.dy + initY)
+            .clamp(0.0, initialCropHeight / scalingFactor + initialCropY)
+            .toDouble();
     }
     update();
   }
@@ -756,31 +838,46 @@ class EditorController extends GetxController {
     switch (cropAspectRatio) {
       case CropAspectRatio.SQUARE:
         cropWidth = ((offset.dx + initX - cropX) * scalingFactor)
-            .clamp(0.0, min(initialCropWidth + (initialCropY * scalingFactor), videoWidth - cropX * scalingFactor))
+            .clamp(
+                0.0,
+                min(initialCropWidth + (initialCropY * scalingFactor),
+                    videoWidth - cropX * scalingFactor))
             .toDouble();
         cropY = (initialCropWidth / scalingFactor) - cropWidth + initialCropY;
       case CropAspectRatio.RATIO_16_9:
         cropWidth = ((offset.dx + initX - cropX) * scalingFactor)
-            .clamp(0.0,
-                min(initialCropWidth + initialCropY * scalingFactor * (16 / 9), videoWidth - cropX * scalingFactor))
+            .clamp(
+                0.0,
+                min(initialCropWidth + initialCropY * scalingFactor * (16 / 9),
+                    videoWidth - cropX * scalingFactor))
             .toDouble();
-        cropY = ((initialCropWidth / scalingFactor) - cropWidth) * (9 / 16) + initialCropY;
+        cropY = ((initialCropWidth / scalingFactor) - cropWidth) * (9 / 16) +
+            initialCropY;
       case CropAspectRatio.RATIO_9_16:
         cropWidth = ((offset.dx + initX - cropX) * scalingFactor)
-            .clamp(0.0,
-                min(initialCropWidth + initialCropY * scalingFactor * (9 / 16), videoWidth - cropX * scalingFactor))
+            .clamp(
+                0.0,
+                min(initialCropWidth + initialCropY * scalingFactor * (9 / 16),
+                    videoWidth - cropX * scalingFactor))
             .toDouble();
-        cropY = ((initialCropWidth / scalingFactor) - cropWidth) * (16 / 9) + initialCropY;
+        cropY = ((initialCropWidth / scalingFactor) - cropWidth) * (16 / 9) +
+            initialCropY;
       case CropAspectRatio.RATIO_4_5:
         cropWidth = ((offset.dx + initX - cropX) * scalingFactor)
             .clamp(
-                0.0, min(initialCropWidth + initialCropY * scalingFactor * (4 / 5), videoWidth - cropX * scalingFactor))
+                0.0,
+                min(initialCropWidth + initialCropY * scalingFactor * (4 / 5),
+                    videoWidth - cropX * scalingFactor))
             .toDouble();
-        cropY = ((initialCropWidth / scalingFactor) - cropWidth) * (5 / 4) + initialCropY;
+        cropY = ((initialCropWidth / scalingFactor) - cropWidth) * (5 / 4) +
+            initialCropY;
       case CropAspectRatio.FREE:
-        cropWidth =
-            ((offset.dx + initX - cropX) * scalingFactor).clamp(0.0, videoWidth - cropX * scalingFactor).toDouble();
-        cropY = (offset.dy + initY).clamp(0.0, (initialCropHeight / scalingFactor + initialCropY)).toDouble();
+        cropWidth = ((offset.dx + initX - cropX) * scalingFactor)
+            .clamp(0.0, videoWidth - cropX * scalingFactor)
+            .toDouble();
+        cropY = (offset.dy + initY)
+            .clamp(0.0, (initialCropHeight / scalingFactor + initialCropY))
+            .toDouble();
       default:
     }
   }
@@ -790,23 +887,33 @@ class EditorController extends GetxController {
       case CropAspectRatio.SQUARE:
         cropX = (offset.dx + initX)
             .clamp(
-                max(0.0,
-                    initialCropX - (videoHeight / scalingFactor - (initialCropY + initialCropHeight / scalingFactor))),
+                max(
+                    0.0,
+                    initialCropX -
+                        (videoHeight / scalingFactor -
+                            (initialCropY +
+                                initialCropHeight / scalingFactor))),
                 initialCropWidth / scalingFactor + initialCropX)
             .toDouble();
-        cropHeight = (initialCropHeight - (cropX - initialCropX) * scalingFactor)
-            .clamp(0.0, videoHeight - cropY * scalingFactor)
-            .toDouble();
+        cropHeight =
+            (initialCropHeight - (cropX - initialCropX) * scalingFactor)
+                .clamp(0.0, videoHeight - cropY * scalingFactor)
+                .toDouble();
       case CropAspectRatio.RATIO_16_9:
         cropX = (offset.dx + initX)
             .clamp(
                 max(
                     0.0,
                     initialCropX -
-                        (videoHeight / scalingFactor - (initialCropY + initialCropHeight / scalingFactor)) * 16 / 9),
+                        (videoHeight / scalingFactor -
+                                (initialCropY +
+                                    initialCropHeight / scalingFactor)) *
+                            16 /
+                            9),
                 initialCropWidth / scalingFactor + initialCropX)
             .toDouble();
-        cropHeight = (initialCropHeight - (cropX - initialCropX) * scalingFactor * (9 / 16))
+        cropHeight = (initialCropHeight -
+                (cropX - initialCropX) * scalingFactor * (9 / 16))
             .clamp(0.0, videoHeight - cropY * scalingFactor)
             .toDouble();
       case CropAspectRatio.RATIO_9_16:
@@ -815,10 +922,15 @@ class EditorController extends GetxController {
                 max(
                     0.0,
                     initialCropX -
-                        (videoHeight / scalingFactor - (initialCropY + initialCropHeight / scalingFactor)) * 9 / 16),
+                        (videoHeight / scalingFactor -
+                                (initialCropY +
+                                    initialCropHeight / scalingFactor)) *
+                            9 /
+                            16),
                 initialCropWidth / scalingFactor + initialCropX)
             .toDouble();
-        cropHeight = (initialCropHeight - (cropX - initialCropX) * scalingFactor * (16 / 9))
+        cropHeight = (initialCropHeight -
+                (cropX - initialCropX) * scalingFactor * (16 / 9))
             .clamp(0.0, videoHeight - cropY * scalingFactor)
             .toDouble();
       case CropAspectRatio.RATIO_4_5:
@@ -827,16 +939,24 @@ class EditorController extends GetxController {
                 max(
                     0.0,
                     initialCropX -
-                        (videoHeight / scalingFactor - (initialCropY + initialCropHeight / scalingFactor)) * 4 / 5),
+                        (videoHeight / scalingFactor -
+                                (initialCropY +
+                                    initialCropHeight / scalingFactor)) *
+                            4 /
+                            5),
                 initialCropWidth / scalingFactor + initialCropX)
             .toDouble();
-        cropHeight = (initialCropHeight - (cropX - initialCropX) * scalingFactor * (5 / 4))
+        cropHeight = (initialCropHeight -
+                (cropX - initialCropX) * scalingFactor * (5 / 4))
             .clamp(0.0, videoHeight - cropY * scalingFactor)
             .toDouble();
       case CropAspectRatio.FREE:
-        cropX = (offset.dx + initX).clamp(0.0, initialCropWidth / scalingFactor + initialCropX).toDouble();
-        cropHeight =
-            ((offset.dy + initY - cropY) * scalingFactor).clamp(0.0, videoHeight - cropY * scalingFactor).toDouble();
+        cropX = (offset.dx + initX)
+            .clamp(0.0, initialCropWidth / scalingFactor + initialCropX)
+            .toDouble();
+        cropHeight = ((offset.dy + initY - cropY) * scalingFactor)
+            .clamp(0.0, videoHeight - cropY * scalingFactor)
+            .toDouble();
     }
   }
 
@@ -848,7 +968,9 @@ class EditorController extends GetxController {
                 0.0,
                 min(
                     initialCropWidth +
-                        (videoHeight / scalingFactor - (initialCropY + initialCropHeight / scalingFactor)) *
+                        (videoHeight / scalingFactor -
+                                (initialCropY +
+                                    initialCropHeight / scalingFactor)) *
                             scalingFactor,
                     videoWidth - cropX * scalingFactor))
             .toDouble();
@@ -859,7 +981,9 @@ class EditorController extends GetxController {
                 0.0,
                 min(
                     initialCropWidth +
-                        (videoHeight / scalingFactor - (initialCropY + initialCropHeight / scalingFactor)) *
+                        (videoHeight / scalingFactor -
+                                (initialCropY +
+                                    initialCropHeight / scalingFactor)) *
                             scalingFactor *
                             (16 / 9),
                     videoWidth - cropX * scalingFactor))
@@ -871,7 +995,9 @@ class EditorController extends GetxController {
                 0.0,
                 min(
                     initialCropWidth +
-                        (videoHeight / scalingFactor - (initialCropY + initialCropHeight / scalingFactor)) *
+                        (videoHeight / scalingFactor -
+                                (initialCropY +
+                                    initialCropHeight / scalingFactor)) *
                             scalingFactor *
                             (9 / 16),
                     videoWidth - cropX * scalingFactor))
@@ -883,17 +1009,21 @@ class EditorController extends GetxController {
                 0.0,
                 min(
                     initialCropWidth +
-                        (videoHeight / scalingFactor - (initialCropY + initialCropHeight / scalingFactor)) *
+                        (videoHeight / scalingFactor -
+                                (initialCropY +
+                                    initialCropHeight / scalingFactor)) *
                             scalingFactor *
                             (4 / 5),
                     videoWidth - cropX * scalingFactor))
             .toDouble();
         cropHeight = cropWidth * scalingFactor * (5 / 4);
       case CropAspectRatio.FREE:
-        cropWidth =
-            ((offset.dx + initX - cropX) * scalingFactor).clamp(0.0, videoWidth - cropX * scalingFactor).toDouble();
-        cropHeight =
-            ((offset.dy + initY - cropY) * scalingFactor).clamp(0.0, videoHeight - cropY * scalingFactor).toDouble();
+        cropWidth = ((offset.dx + initX - cropX) * scalingFactor)
+            .clamp(0.0, videoWidth - cropX * scalingFactor)
+            .toDouble();
+        cropHeight = ((offset.dy + initY - cropY) * scalingFactor)
+            .clamp(0.0, videoHeight - cropY * scalingFactor)
+            .toDouble();
       default:
     }
   }
@@ -908,7 +1038,8 @@ class EditorController extends GetxController {
     String outputPath = await generateOutputPath('${project.name}_$dateTime');
 
     // Get the font scaling factor. Video height / in app height if vertical. Video width / in app width if horizontal.
-    double finalScalingFactor = num.parse(scalingFactor.toStringAsFixed(2)).toDouble();
+    double finalScalingFactor =
+        num.parse(scalingFactor.toStringAsFixed(2)).toDouble();
     print('Font scaling factor: $scalingFactor');
 
     // Get the export options
@@ -930,14 +1061,21 @@ class EditorController extends GetxController {
       exportOptions,
     );
 
-    void printWrapped(String text) => RegExp('.{1,800}').allMatches(text).map((m) => m.group(0)).forEach(print);
+    void printWrapped(String text) => RegExp('.{1,800}')
+        .allMatches(text)
+        .map((m) => m.group(0))
+        .forEach(print);
     // Log the command to be executed and close the bottom sheet
     printWrapped('Will execute : ffmpeg $command');
     Get.back();
 
     Get.toNamed(
       Routes.EXPORT,
-      arguments: {'command': command, 'outputPath': outputPath, 'videoDuration': afterExportVideoDuration},
+      arguments: {
+        'command': command,
+        'outputPath': outputPath,
+        'videoDuration': afterExportVideoDuration
+      },
     );
   }
 }

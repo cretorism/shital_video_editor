@@ -1,27 +1,27 @@
 import 'package:flutter/material.dart';
 
 class CustomColors {
-  // Light
-  static const Color backgroundLight = Color.fromARGB(255, 253, 253, 253);
-  static const Color textLight = Color.fromARGB(255, 16, 20, 20);
-  static const Color primary = Color.fromARGB(255, 146, 102, 217);
-  static const Color primaryLight = Color.fromARGB(255, 170, 142, 215);
-  static const Color hint = Color.fromARGB(255, 123, 76, 199);
-  static const Color iconButtonBackground = Color.fromARGB(255, 240, 235, 248);
-  static const Color error = Color.fromARGB(255, 237, 45, 45);
-  static const Color disabled = Color.fromARGB(255, 224, 224, 224);
-  static const Color onDisabled = Color.fromARGB(255, 80, 80, 80);
-  static const Color warning = Color.fromARGB(255, 255, 214, 90);
-  static const Color onWarning = Color.fromARGB(255, 122, 88, 0);
-  static const Color info = Color.fromARGB(255, 122, 202, 255);
-  static const Color success = Color.fromARGB(255, 121, 218, 131);
-  static const Color audioTimeline = Color.fromARGB(255, 217, 183, 102);
-  static const Color textTimeline = Color.fromARGB(255, 102, 202, 217);
-  static const Color textTimelineLight = Color.fromARGB(255, 223, 255, 255);
+  // Light - Instagram-like black, white, and grey theme
+  static const Color backgroundLight = Color.fromARGB(255, 255, 255, 255); // Pure white background
+  static const Color textLight = Color.fromARGB(255, 38, 38, 38); // Dark grey text
+  static const Color primary = Color.fromARGB(255, 0, 0, 0); // Black
+  static const Color primaryLight = Color.fromARGB(255, 38, 38, 38); // Dark grey
+  static const Color hint = Color.fromARGB(255, 142, 142, 142); // Medium grey
+  static const Color iconButtonBackground = Color.fromARGB(255, 247, 247, 247); // Light grey
+  static const Color error = Color.fromARGB(255, 220, 53, 69); // Instagram-like red
+  static const Color disabled = Color.fromARGB(255, 218, 218, 218); // Light grey
+  static const Color onDisabled = Color.fromARGB(255, 142, 142, 142); // Medium grey
+  static const Color warning = Color.fromARGB(255, 255, 193, 7); // Instagram-like yellow
+  static const Color onWarning = Color.fromARGB(255, 100, 80, 0); // Darker yellow-brown
+  static const Color info = Color.fromARGB(255, 0, 123, 255); // Instagram-like blue
+  static const Color success = Color.fromARGB(255, 40, 167, 69); // Instagram-like green
+  static const Color audioTimeline = Color.fromARGB(255, 128, 128, 128); // Grey
+  static const Color textTimeline = Color.fromARGB(255, 100, 100, 100); // Darker grey
+  static const Color textTimelineLight = Color.fromARGB(255, 200, 200, 200); // Lighter grey
 
-  // Dark
-  static const Color backgroundDark = Color.fromARGB(255, 16, 20, 20);
-  static const Color textDark = Color.fromARGB(255, 253, 253, 253);
-  static const Color primaryDark = Color.fromARGB(255, 146, 102, 217);
-  static const Color primaryLightDark = Color.fromARGB(255, 170, 142, 215);
+  // Dark - Instagram-like black, white, and grey theme
+  static const Color backgroundDark = Color.fromARGB(255, 0, 0, 0); // Pure black background
+  static const Color textDark = Color.fromARGB(255, 255, 255, 255); // Pure white text
+  static const Color primaryDark = Color.fromARGB(255, 255, 255, 255); // White for dark theme
+  static const Color primaryLightDark = Color.fromARGB(255, 218, 218, 218); // Light grey
 }

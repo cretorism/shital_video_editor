@@ -35,14 +35,14 @@ class EditorActions extends StatelessWidget {
         EditorController.to.selectedOptions = SelectedOptions.AUDIO;
       },
     ),
-    //HERE TEMPORILY CHANGED THE TEXT OPTION
-    // EditOption(
-    //   title: translations.baseVideoTextTitle.tr,
-    //   icon: Icons.text_fields_outlined,
-    //   onPressed: () {
-    //     EditorController.to.selectedOptions = SelectedOptions.TEXT;
-    //   },
-    // ),
+    // HERE TEMPORILY CHANGED THE TEXT OPTION
+    EditOption(
+      title: translations.baseVideoTextTitle.tr,
+      icon: Icons.text_fields_outlined,
+      onPressed: () {
+        EditorController.to.selectedOptions = SelectedOptions.TEXT;
+      },
+    ),
     EditOption(
         title: translations.baseVideoCropTitle.tr,
         icon: Icons.crop,

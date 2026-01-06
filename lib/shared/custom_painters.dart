@@ -26,8 +26,9 @@ class LinePainter extends CustomPainter {
 class TrimPainter extends CustomPainter {
   final int msTrimStart;
   final int msTrimEnd;
+  final bool isTrimmingMode;
 
-  TrimPainter(this.msTrimStart, this.msTrimEnd);
+  TrimPainter(this.msTrimStart, this.msTrimEnd, {this.isTrimmingMode = false});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -36,9 +37,19 @@ class TrimPainter extends CustomPainter {
     double endX = (msTrimEnd / 1000) * 50.0;
 
     endX = endX.clamp(0.0, size.width);
-    // Draw trim start line only if it's not at the beginning
+    startX = startX.clamp(0.0, size.width);
+
+    // Draw the background region that is trimmed out (before start and after end)
     if (startX > 0) {
       drawRoundedRectangleWithOpacity(canvas, 0.0, startX, Colors.black.withOpacity(0.15), size, true);
+    }
+
+    if (endX < size.width) {
+      drawRoundedRectangleWithOpacity(canvas, endX, size.width, Colors.black.withOpacity(0.15), size, false);
+    }
+
+    // Draw trim start handle only if it's within the visible range
+    if (startX >= 0 && startX <= size.width) {
       canvas.drawLine(
         Offset(startX, 0),
         Offset(startX, size.height),
@@ -47,16 +58,21 @@ class TrimPainter extends CustomPainter {
           ..strokeWidth = 2.0,
       );
 
-      drawTriangle(
-        canvas,
-        Offset(startX, 1),
-        Colors.red,
-        false, // pointing down
-      );
+      // Draw a handle if in trimming mode
+      if (isTrimmingMode) {
+        drawHandle(canvas, Offset(startX, size.height / 2), Colors.red);
+      } else {
+        drawTriangle(
+          canvas,
+          Offset(startX, 1),
+          Colors.red,
+          false, // pointing down
+        );
+      }
     }
 
-    // Draw trim end line only if it's not at the end
-    if (endX < size.width) {
+    // Draw trim end handle only if it's within the visible range
+    if (endX >= 0 && endX <= size.width) {
       canvas.drawLine(
         Offset(endX, 0),
         Offset(endX, size.height),
@@ -65,20 +81,26 @@ class TrimPainter extends CustomPainter {
           ..strokeWidth = 2.0,
       );
 
-      drawTriangle(
-        canvas,
-        Offset(endX, 1),
-        Colors.blue,
-        false,
-      );
-      drawRoundedRectangleWithOpacity(canvas, endX, size.width, Colors.black.withOpacity(0.15), size, false);
+      // Draw a handle if in trimming mode
+      if (isTrimmingMode) {
+        drawHandle(canvas, Offset(endX, size.height / 2), Colors.blue);
+      } else {
+        drawTriangle(
+          canvas,
+          Offset(endX, 1),
+          Colors.blue,
+          false,
+        );
+      }
     }
   }
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
     if (oldDelegate is TrimPainter) {
-      return msTrimStart != oldDelegate.msTrimStart || msTrimEnd != oldDelegate.msTrimEnd;
+      return msTrimStart != oldDelegate.msTrimStart ||
+             msTrimEnd != oldDelegate.msTrimEnd ||
+             isTrimmingMode != oldDelegate.isTrimmingMode;
     }
     return true;
   }
@@ -104,6 +126,34 @@ class TrimPainter extends CustomPainter {
       Paint()
         ..color = color
         ..style = PaintingStyle.fill,
+    );
+  }
+
+  void drawHandle(Canvas canvas, Offset position, Color color) {
+    // Draw a thick handle that looks like a vertical bar
+    Paint handlePaint = Paint()
+      ..color = Colors.white
+      ..strokeWidth = 6.0
+      ..strokeCap = StrokeCap.round;
+
+    // Main vertical line handle
+    double handleHeight = 30.0;
+    canvas.drawLine(
+      Offset(position.dx, position.dy - handleHeight/2),
+      Offset(position.dx, position.dy + handleHeight/2),
+      handlePaint,
+    );
+
+    // Add a colored indicator on top
+    Paint indicatorPaint = Paint()
+      ..color = color
+      ..strokeWidth = 4.0
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawLine(
+      Offset(position.dx, position.dy - handleHeight/2 + 5),
+      Offset(position.dx, position.dy + handleHeight/2 - 5),
+      indicatorPaint,
     );
   }
 
