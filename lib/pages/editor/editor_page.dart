@@ -15,17 +15,22 @@ import 'package:shital_video_editor/shared/helpers/video.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
 
-class EditorPage extends StatelessWidget {
+class EditorPage extends GetView<EditorController> {
   EditorPage({super.key});
-
-  // ignore: unused_field
-  final _editorController = Get.put(EditorController(project: Get.arguments));
 
   @override
   Widget build(BuildContext context) {
+    print('DEBUG: EditorPage build called');
+    // Initialize controller using Get.put ensures it persists as long as the route is active.
+    // Using simple Get.put instead of GetBuilder init preventing premature disposal.
+    Get.put(EditorController(project: Get.arguments));
+
     return Scaffold(
+      resizeToAvoidBottomInset:
+          false, // Prevent layout overflow when keyboard opens
       appBar: _editorAppBar(context),
       body: GetBuilder<EditorController>(
+        // init: EditorController(project: Get.arguments), // Removed to prevent lifecycle issues
         builder: (_) {
           return Column(
             children: [
@@ -100,7 +105,7 @@ class EditorPage extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
       child: Container(
-          height: MediaQuery.of(context).size.height * 0.4,
+          height: MediaQuery.of(context).size.height * 0.35,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18.0),
             color: Colors.black,
@@ -446,14 +451,13 @@ class EditorPage extends StatelessWidget {
               Flexible(
                 child: InkWell(
                   onTap: () {
-                    if (_editorController.selectedOptions !=
-                        SelectedOptions.TEXT) {
-                      _editorController.selectedOptions = SelectedOptions.TEXT;
+                    if (controller.selectedOptions != SelectedOptions.TEXT) {
+                      controller.selectedOptions = SelectedOptions.TEXT;
                     }
-                    _editorController.selectedTextId = text.id;
+                    controller.selectedTextId = text.id;
                   },
                   onLongPress: () {
-                    _editorController.selectedTextId = text.id;
+                    controller.selectedTextId = text.id;
                     Get.dialog(EditTextDialog());
                   },
                   child: Container(

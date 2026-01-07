@@ -30,8 +30,13 @@ class MediaTransformations {
         audioVolume = (json['audioVolume'] ?? 1.0).toDouble(),
         audioStart = Duration(milliseconds: json['audioStart'] ?? 0),
         cropAspectRatio = json['cropAspectRatio'] != null
-            ? CropAspectRatio.values.firstWhere((e) => e.toString() == json['cropAspectRatio'])
+            ? CropAspectRatio.values
+                .firstWhere((e) => e.toString() == json['cropAspectRatio'])
             : CropAspectRatio.FREE,
+        texts = (json['texts'] as List<dynamic>?)
+                ?.map((e) => TextTransformation.fromJson(e))
+                .toList() ??
+            [],
         cropX = (json['cropX'] ?? 0).toDouble(),
         cropY = (json['cropY'] ?? 0).toDouble(),
         cropWidth = (json['cropWidth'] ?? 0).toDouble(),

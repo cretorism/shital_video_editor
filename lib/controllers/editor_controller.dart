@@ -192,7 +192,8 @@ class EditorController extends GetxController {
   }
 
   get hasText => project.transformations.texts.isNotEmpty;
-  get texts => project.transformations.texts..sort(textComparator);
+  get texts => List<TextTransformation>.from(project.transformations.texts)
+    ..sort(textComparator);
   get nTexts => project.transformations.texts.length;
   get selectedText => project.transformations.texts
       .firstWhere((element) => element.id == selectedTextId);
@@ -342,6 +343,7 @@ class EditorController extends GetxController {
 
   @override
   void onInit() async {
+    print('DEBUG: EditorController onInit started');
     super.onInit();
 
     // Initialize the video player controller if the project has a video.
@@ -351,15 +353,18 @@ class EditorController extends GetxController {
     if (hasAudio) {
       _initializeAudio();
     }
+    print('DEBUG: EditorController onInit completed');
   }
 
   @override
   void onClose() {
+    print('DEBUG: EditorController onClose called');
     super.onClose();
     // Dispose of the video player controller when the editor is closed.
     _videoController?.dispose();
     _audioPlayer.dispose();
     _videoController = null;
+    print('DEBUG: EditorController onClose completed');
   }
 
   Future<void> _initializeVideoController() async {
@@ -622,6 +627,7 @@ class EditorController extends GetxController {
   }
 
   addProjectText() {
+    print('DEBUG: addProjectText called with text: $textToAdd');
     // Avoid duration to be bigger than the video duration.
     int msStartTime = _position!.inMilliseconds;
     int finalTextDuration = textDuration * 1000;
@@ -643,6 +649,7 @@ class EditorController extends GetxController {
     // Reset the textToAdd and textDuration variables.
     textToAdd = '';
     textDuration = 5;
+    print('DEBUG: addProjectText finished, text added to list');
   }
 
   deleteSelectedText() {
