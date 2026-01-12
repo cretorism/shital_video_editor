@@ -4,11 +4,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:shital_video_editor/controllers/export_controller.dart';
-import 'package:shital_video_editor/routes/app_pages.dart';
-import 'package:shital_video_editor/shared/core/constants.dart';
 import 'package:get/get.dart';
-import 'dart:math' as math;
-import 'package:shital_video_editor/shared/translations/translation_keys.dart' as translations;
+import 'package:shital_video_editor/shared/translations/translation_keys.dart'
+    as translations;
 
 import 'package:percent_indicator/circular_percent_indicator.dart';
 
@@ -21,24 +19,22 @@ class ExportPage extends StatelessWidget {
     ),
   );
 
-
-
-void _exitWithOutput(BuildContext context){
-  Navigator.popUntil(context, (route)=>route.isFirst);
-  Navigator.of(context, rootNavigator: true).pop(File(_exportController.outputPath));
-}
+  void _exitWithOutput(BuildContext context) {
+    Navigator.popUntil(context, (route) => route.isFirst);
+    Navigator.of(context, rootNavigator: true)
+        .pop(File(_exportController.outputPath));
+  }
 
   @override
   Widget build(BuildContext context) {
     return Obx(
       () => Scaffold(
         // Hide the app bar when exporting the video.
-        appBar: _exportController.isExporting.value ? null : _exportAppBar(context),
+        appBar:
+            _exportController.isExporting.value ? null : _exportAppBar(context),
         body: _exportController.isExporting.value
             ? _loadingScreen(context)
-
-            :
-             _exportController.errorExporting.value
+            : _exportController.errorExporting.value
                 ? _errorExportingVideoScreen(context)
                 : _exportedVideoScreen(context),
       ),
@@ -55,7 +51,6 @@ void _exitWithOutput(BuildContext context){
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            
             // Get back to editor page
             // InkWell(
             //   onTap: () => Get.back(),
@@ -91,7 +86,8 @@ void _exitWithOutput(BuildContext context){
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(translations.exportPageLoadingTitle.tr,
-                style: Theme.of(context).textTheme.titleLarge, textAlign: TextAlign.center),
+                style: Theme.of(context).textTheme.titleLarge,
+                textAlign: TextAlign.center),
             SizedBox(height: 8.0),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12.0),
@@ -106,12 +102,16 @@ void _exitWithOutput(BuildContext context){
               radius: 60.0,
               animateFromLastPercent: true,
               progressColor: Theme.of(context).colorScheme.secondary,
-              backgroundColor: Theme.of(context).primaryColorLight.withOpacity(0.5),
+              backgroundColor:
+                  Theme.of(context).primaryColorLight.withOpacity(0.5),
               circularStrokeCap: CircularStrokeCap.round,
               percent: _exportController.exportProgress.value,
               center: Text(
                 '${(_exportController.exportProgress.value * 100).toStringAsFixed(2)}%',
-                style: Theme.of(context).textTheme.titleMedium!.copyWith(color: Theme.of(context).colorScheme.primary),
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium!
+                    .copyWith(color: Theme.of(context).colorScheme.primary),
               ),
             ),
           ],
@@ -160,7 +160,7 @@ void _exitWithOutput(BuildContext context){
     //               ),
     //               child: Text(
     //                 _exportController.outputPath,
-    //                 style: Theme.of(context).textTheme.bodySmall,  
+    //                 style: Theme.of(context).textTheme.bodySmall,
     //                 textAlign: TextAlign.center,
     //                 overflow: TextOverflow.ellipsis,
     //               ),
@@ -171,7 +171,7 @@ void _exitWithOutput(BuildContext context){
     //       ElevatedButton(
     //         onPressed: () =>
     //         _exitWithOutput(context),
-            
+
     //         style: ElevatedButton.styleFrom(
     //           backgroundColor: Theme.of(context).primaryColorLight,
     //           foregroundColor: Colors.white,
@@ -261,9 +261,9 @@ void _exitWithOutput(BuildContext context){
     //       ElevatedButton(
     //          onPressed: () =>
     //         _exitWithOutput(context),
-    //         // onPressed: () { 
+    //         // onPressed: () {
     //         //   // Get.back();
-              
+
     //         //   Navigator.popUntil(context, (route)=>route.isFirst);
     //         //   }, // Go back to editor instead of home
     //         style: ElevatedButton.styleFrom(

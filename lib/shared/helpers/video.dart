@@ -4,6 +4,12 @@ import 'package:shital_video_editor/shared/core/constants.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 
 String convertTwo(int value) => value < 10 ? '0$value' : '$value';
+String formatTime(int totalSeconds) {
+  int minutes = totalSeconds ~/ 60;
+  int seconds = totalSeconds % 60;
+  return '${convertTwo(minutes)}:${convertTwo(seconds)}';
+}
+
 String convertThree(int value) => value < 10
     ? '00$value'
     : value < 100

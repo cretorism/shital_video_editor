@@ -20,6 +20,7 @@ import 'package:shital_video_editor/shared/translations/translation_keys.dart'
 
 import 'package:intl/intl.dart';
 import 'package:shital_video_editor/models/project.dart';
+import 'package:shital_video_editor/pages/editor/widgets/audio_start_sheet.dart';
 import 'package:video_player/video_player.dart';
 
 class EditorController extends GetxController {
@@ -65,10 +66,9 @@ class EditorController extends GetxController {
       project.transformations.trimEnd.inMilliseconds -
       project.transformations.trimStart.inMilliseconds;
 
-  String get videoPositionString =>
-      '${convertTwo(_position!.inMinutes)}:${convertTwo(_position!.inSeconds)}';
+  String get videoPositionString => formatTime(_position!.inSeconds);
   String get videoDurationString => isVideoInitialized
-      ? '${convertTwo(_videoController!.value.duration.inMinutes)}:${convertTwo(_videoController!.value.duration.inSeconds)}'
+      ? formatTime(_videoController!.value.duration.inSeconds)
       : '00:00';
 
   bool get isHorizontal => videoWidth > videoHeight;
@@ -271,6 +271,8 @@ class EditorController extends GetxController {
       (rightBottomKey.currentContext!.findRenderObject() as RenderBox)
           .localToGlobal(Offset.zero);
 
+  bool _showAudioStartOnLoad = false;
+
   double _initX = 0;
   double get initX => _initX;
   set initX(double value) {
@@ -456,7 +458,21 @@ class EditorController extends GetxController {
     _audioPlayer.onDurationChanged.listen((Duration d) {
       _audioDuration = d;
       update();
+
+      // If we just picked a long audio, show the audio start selector sheet
+      if (_showAudioStartOnLoad) {
+        _showAudioStartOnLoad = false;
+        if (canSetAudioStart) {
+          Get.bottomSheet(AudioStartSheet()).then((value) {
+            onAudioStartSheetClosed();
+          });
+          Future.delayed(Duration(milliseconds: 300), () {
+            scrollToAudioStart();
+          });
+        }
+      }
     });
+
     _audioPlayer.onPlayerStateChanged.listen((PlayerState state) {
       _audioPlayerState = state;
       update();
@@ -605,6 +621,7 @@ class EditorController extends GetxController {
         project.transformations.audioUrl = result.files.single.path!;
         project.transformations.audioName = result.files.single.name;
         project.transformations.audioStart = Duration.zero;
+        _showAudioStartOnLoad = true;
         _initializeAudio();
         update();
       }

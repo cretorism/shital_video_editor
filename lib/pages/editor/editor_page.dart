@@ -184,26 +184,6 @@ class EditorPage extends GetView<EditorController> {
             return Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Video position text
-                Row(
-                  children: [
-                    Text(
-                      _.videoPositionString,
-                      style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                          fontSize: 18.0, fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      '/${_.videoDurationString}',
-                      style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onBackground
-                                .withOpacity(0.25),
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                  ],
-                ),
                 Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(50.0),
@@ -226,6 +206,26 @@ class EditorPage extends GetView<EditorController> {
                         : Icon(Icons.play_arrow),
                     splashRadius: 16.0,
                   ),
+                ),
+                // Video position text
+                Row(
+                  children: [
+                    Text(
+                      _.videoPositionString,
+                      style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                          fontSize: 18.0, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      '/${_.videoDurationString}',
+                      style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onBackground
+                                .withOpacity(0.25),
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                  ],
                 ),
                 // Other controls
                 Row(

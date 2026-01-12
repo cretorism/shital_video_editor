@@ -52,25 +52,43 @@ class AudioTimeline extends StatelessWidget {
                       width: 2.0,
                     ),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(8.0, 0.0, 16.0, 0.0),
-                    child: Row(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10.0),
+                    child: Stack(
                       children: [
-                        Icon(
-                          _.hasAudio ? Icons.audiotrack : Icons.add,
-                          color: CustomColors.audioTimeline,
-                        ),
-                        SizedBox(width: 4.0),
-                        Expanded(
-                          child: Text(
-                            _.hasAudio
-                                ? _.audioName
-                                : translations.audioTimelineAddAudio.tr,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleSmall!
-                                .copyWith(color: CustomColors.audioTimeline),
+                        if (_.hasAudio)
+                          Positioned.fill(
+                            child: CustomPaint(
+                              painter: AudioWavePainter(
+                                color:
+                                    CustomColors.audioTimeline.withOpacity(0.2),
+                              ),
+                            ),
+                          ),
+                        Padding(
+                          padding:
+                              const EdgeInsets.fromLTRB(8.0, 0.0, 16.0, 0.0),
+                          child: Row(
+                            children: [
+                              Icon(
+                                _.hasAudio ? Icons.audiotrack : Icons.add,
+                                color: CustomColors.audioTimeline,
+                              ),
+                              SizedBox(width: 4.0),
+                              Expanded(
+                                child: Text(
+                                  _.hasAudio
+                                      ? _.audioName
+                                      : translations.audioTimelineAddAudio.tr,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleSmall!
+                                      .copyWith(
+                                          color: CustomColors.audioTimeline),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -85,4 +103,36 @@ class AudioTimeline extends StatelessWidget {
       },
     );
   }
+}
+
+class AudioWavePainter extends CustomPainter {
+  final Color color;
+
+  AudioWavePainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 3.0
+      ..strokeCap = StrokeCap.round;
+
+    final double barGap = 6.0;
+    final int barCount = (size.width / barGap).ceil();
+
+    for (int i = 0; i < barCount; i++) {
+      final double x = i * barGap;
+      final double h = i % 2 == 0 ? size.height * 0.7 : size.height * 0.4;
+      final double y = (size.height - h) / 2;
+
+      canvas.drawLine(
+        Offset(x, y),
+        Offset(x, y + h),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
