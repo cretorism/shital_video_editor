@@ -12,6 +12,9 @@ import 'package:shital_video_editor/pages/editor/widgets/timelines/video_timelin
 import 'package:shital_video_editor/shared/core/constants.dart';
 import 'package:shital_video_editor/shared/custom_painters.dart';
 import 'package:shital_video_editor/shared/helpers/video.dart';
+import 'package:shital_video_editor/shared/helpers/snackbar.dart';
+import 'package:shital_video_editor/shared/translations/translation_keys.dart'
+    as translations;
 
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
@@ -90,7 +93,18 @@ class EditorPage extends GetView<EditorController> {
                   icon: Icon(Icons.file_upload_outlined, size: 26.0),
                   color: Theme.of(context).colorScheme.onBackground,
                   onPressed: () {
-                    _showBottomSheet(context);
+                    // Check video duration before showing export sheet
+                    if (EditorController.to.afterExportVideoDuration >
+                        EditorController.maxDurationMs) {
+                      showSnackbar(
+                        Theme.of(context).colorScheme.error,
+                        translations.deniedOperationErrorTitle.tr,
+                        "Max video length is 1 min 30 seconds",
+                        Icons.error_outline,
+                      );
+                    } else {
+                      _showBottomSheet(context);
+                    }
                   },
                   splashRadius: 20.0,
                 ),
@@ -276,74 +290,113 @@ class EditorPage extends GetView<EditorController> {
         ));
   }
 
+  // Track active pointers for zoom detection
+  final Set<int> _activePointers = {};
+
   _videoTimeline(BuildContext context) {
     return GetBuilder<EditorController>(builder: (_) {
-      return GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onScaleStart: (details) => _.onScaleStart(),
-        onScaleUpdate: (details) => _.onScaleUpdate(details.scale),
-        onScaleEnd: (details) => _.onScaleEnd(),
-        child: Stack(
-          children: [
-            CustomPaint(
-              painter: LinePainter(_.videoPosition),
-              child: Container(
-                height: 85.0,
+      return Listener(
+        onPointerDown: (event) {
+          _activePointers.add(event.pointer);
+          if (_activePointers.length >= 2) {
+            // Lock scroll immediately when two fingers detected
+            _.isTimelineScrollLocked = true;
+            _.update();
+          }
+        },
+        onPointerUp: (event) {
+          _activePointers.remove(event.pointer);
+          if (_activePointers.length < 2 && _.isTimelineScrollLocked) {
+            _.isTimelineScrollLocked = false;
+            _.update();
+          }
+        },
+        onPointerCancel: (event) {
+          _activePointers.remove(event.pointer);
+          if (_activePointers.length < 2 && _.isTimelineScrollLocked) {
+            _.isTimelineScrollLocked = false;
+            _.update();
+          }
+        },
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onScaleStart: (details) => _.onScaleStart(details),
+          onScaleUpdate: (details) => _.onScaleUpdate(details),
+          onScaleEnd: (details) {
+            _.onScaleEnd(details);
+            _activePointers.clear();
+          },
+          child: Stack(
+            children: [
+              CustomPaint(
+                painter: LinePainter(_.videoPosition),
+                child: Container(
+                  height: 85.0,
+                ),
               ),
-            ),
-            Column(
-              children: [
-                // Video Timeline
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  physics: _.isTimelineScrollLocked
-                      ? const NeverScrollableScrollPhysics()
-                      : const BouncingScrollPhysics(
-                          parent: AlwaysScrollableScrollPhysics()),
-                  controller: _.scrollController,
-                  child: Column(
-                    children: [
-                      // -------------------------------
-                      //        Video Timeline (secs)
-                      // -------------------------------
-                      Row(
+              Column(
+                children: [
+                  // Video Timeline
+                  NotificationListener<ScrollNotification>(
+                    onNotification: (notification) {
+                      // Block scroll when zooming
+                      return _.isTimelineScrollLocked;
+                    },
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      physics: _.isTimelineScrollLocked
+                          ? const NeverScrollableScrollPhysics()
+                          : const BouncingScrollPhysics(
+                              parent: AlwaysScrollableScrollPhysics()),
+                      controller: _.scrollController,
+                      child: Column(
                         children: [
-                          SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.5),
-                          ...List.generate(
-                            ((_.trimEnd - _.trimStart) / 1000).toInt() + 1,
-                            (index) {
-                              if (index ==
-                                  ((_.trimEnd - _.trimStart) / 1000).toInt()) {
-                                return _lastSecondContainerTimeline(
-                                    context,
-                                    index,
-                                    (((_.trimEnd - _.trimStart) % 1000) /
-                                            1000) *
-                                        _.timelineScale,
-                                    _);
-                              } else {
-                                return _secondContainerTimeline(
-                                    context, index, _);
-                              }
-                            },
+                          // -------------------------------
+                          //        Video Timeline (secs)
+                          // -------------------------------
+                          Row(
+                            children: [
+                              SizedBox(
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.5),
+                              ...List.generate(
+                                ((_.trimEnd - _.trimStart) / 1000).toInt() + 1,
+                                (index) {
+                                  if (index ==
+                                      ((_.trimEnd - _.trimStart) / 1000)
+                                          .toInt()) {
+                                    return _lastSecondContainerTimeline(
+                                        context,
+                                        index,
+                                        (((_.trimEnd - _.trimStart) % 1000) /
+                                                1000) *
+                                            _.timelineScale,
+                                        _);
+                                  } else {
+                                    return _secondContainerTimeline(
+                                        context, index, _);
+                                  }
+                                },
+                              ),
+                              SizedBox(
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.5),
+                            ],
                           ),
-                          SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.5),
+                          SizedBox(height: 12.0),
+                          VideoTimeline(),
+                          SizedBox(height: 12.0),
+                          AudioTimeline(),
+                          SizedBox(height: 12.0),
+                          TextTimeline()
                         ],
                       ),
-                      SizedBox(height: 12.0),
-                      VideoTimeline(),
-                      SizedBox(height: 12.0),
-                      AudioTimeline(),
-                      SizedBox(height: 12.0),
-                      TextTimeline()
-                    ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       );
     });
