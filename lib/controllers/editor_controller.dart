@@ -15,6 +15,7 @@ import 'package:shital_video_editor/shared/helpers/ffmpeg.dart';
 import 'package:shital_video_editor/shared/helpers/files.dart';
 import 'package:shital_video_editor/shared/helpers/snackbar.dart';
 import 'package:shital_video_editor/shared/helpers/video.dart';
+import 'package:shital_video_editor/shared/logger_service.dart';
 import 'package:get/get.dart';
 import 'package:shital_video_editor/shared/translations/translation_keys.dart'
     as translations;
@@ -75,9 +76,10 @@ class EditorController extends GetxController {
       project.transformations.trimEnd.inMilliseconds -
       project.transformations.trimStart.inMilliseconds;
 
-  String get videoPositionString => formatTime(_position!.inSeconds);
+  String get videoPositionString =>
+      formatTime((_position!.inMilliseconds - trimStart) ~/ 1000);
   String get videoDurationString => isVideoInitialized
-      ? formatTime(_videoController!.value.duration.inSeconds)
+      ? formatTime(afterExportVideoDuration ~/ 1000)
       : '00:00';
 
   bool get isHorizontal => videoWidth > videoHeight;
@@ -355,7 +357,7 @@ class EditorController extends GetxController {
 
   @override
   void onInit() async {
-    print('DEBUG: EditorController onInit started');
+    logger.debug('EditorController onInit started');
     super.onInit();
 
     // Initialize the video player controller if the project has a video.
@@ -365,18 +367,18 @@ class EditorController extends GetxController {
     if (hasAudio) {
       _initializeAudio();
     }
-    print('DEBUG: EditorController onInit completed');
+    logger.debug('EditorController onInit completed');
   }
 
   @override
   void onClose() {
-    print('DEBUG: EditorController onClose called');
+    logger.debug('EditorController onClose called');
     super.onClose();
     // Dispose of the video player controller when the editor is closed.
     _videoController?.dispose();
     _audioPlayer.dispose();
     _videoController = null;
-    print('DEBUG: EditorController onClose completed');
+    logger.debug('EditorController onClose completed');
   }
 
   Future<void> _initializeVideoController() async {
@@ -422,6 +424,15 @@ class EditorController extends GetxController {
         if (_position!.inMilliseconds < trimStart &&
             selectedOptions != SelectedOptions.TRIM) {
           jumpToStart();
+          return;
+        }
+
+        // If the position is past the trim end, pause and jump to start (if not in trim mode).
+        if (_position!.inMilliseconds >= trimEnd &&
+            selectedOptions != SelectedOptions.TRIM &&
+            isVideoPlaying) {
+          pauseVideo();
+          _videoController!.seekTo(Duration(milliseconds: trimEnd));
           return;
         }
 
@@ -725,7 +736,7 @@ class EditorController extends GetxController {
   }
 
   addProjectText({double? x, double? y}) {
-    print('DEBUG: addProjectText called with text: $textToAdd at ($x, $y)');
+    logger.debug('addProjectText called with text: $textToAdd at ($x, $y)');
     // Avoid duration to be bigger than the video duration.
     int msStartTime = _position!.inMilliseconds;
     int finalTextDuration = textDuration * 1000;
@@ -738,8 +749,8 @@ class EditorController extends GetxController {
       text: textToAdd,
       msDuration: finalTextDuration,
       msStartTime: msStartTime,
-      x: x,
-      y: y,
+      x: x ?? 0.4,
+      y: y ?? 0.8,
     );
     project.transformations.texts.add(t);
 
@@ -749,7 +760,7 @@ class EditorController extends GetxController {
     // Reset the textToAdd and textDuration variables.
     textToAdd = '';
     textDuration = 5;
-    print('DEBUG: addProjectText finished, text added to list');
+    logger.debug('addProjectText finished, text added to list');
   }
 
   updateTextCoordinates(String id, double x, double y) {
@@ -784,7 +795,7 @@ class EditorController extends GetxController {
   }
 
   updateFontColor(Color color) {
-    print('Color: 0x${color.value.toRadixString(16)}');
+    logger.debug('Color: 0x${color.value.toRadixString(16)}');
     project.transformations.texts
         .firstWhere((element) => element.id == selectedTextId)
         .color = '0x${color.value.toRadixString(16)}';
@@ -806,9 +817,48 @@ class EditorController extends GetxController {
   }
 
   updateTextPosition(TextPosition position) {
-    project.transformations.texts
-        .firstWhere((element) => element.id == selectedTextId)
-        .position = position;
+    TextTransformation text = project.transformations.texts
+        .firstWhere((element) => element.id == selectedTextId);
+    text.position = position;
+
+    switch (position) {
+      case TextPosition.TL:
+        text.x = 0.1;
+        text.y = 0.1;
+        break;
+      case TextPosition.TC:
+        text.x = 0.5;
+        text.y = 0.1;
+        break;
+      case TextPosition.TR:
+        text.x = 0.9;
+        text.y = 0.1;
+        break;
+      case TextPosition.ML:
+        text.x = 0.1;
+        text.y = 0.5;
+        break;
+      case TextPosition.MC:
+        text.x = 0.5;
+        text.y = 0.5;
+        break;
+      case TextPosition.MR:
+        text.x = 0.9;
+        text.y = 0.5;
+        break;
+      case TextPosition.BL:
+        text.x = 0.1;
+        text.y = 0.8;
+        break;
+      case TextPosition.BC:
+        text.x = 0.5;
+        text.y = 0.8;
+        break;
+      case TextPosition.BR:
+        text.x = 0.9;
+        text.y = 0.8;
+        break;
+    }
     update();
   }
 
@@ -1287,54 +1337,82 @@ class EditorController extends GetxController {
   }
 
   exportVideo() async {
+    logger.info('EXPORT: Starting exportVideo process');
     if (isVideoPlaying) {
+      logger.debug('EXPORT: Video is playing, pausing it');
       pauseVideo();
     }
 
-    // Generate the FFMPEG command and navigate to the export page.
-    // Use underscores instead of colons - colons are illegal in Android file paths
-    String dateTime = DateFormat('yyyyMMdd_HH_mm_ss').format(DateTime.now());
-    String outputPath = await generateOutputPath('${project.name}_$dateTime');
+    try {
+      // Generate the FFMPEG command and navigate to the export page.
+      // Use underscores instead of colons - colons are illegal in Android file paths
+      String dateTime = DateFormat('yyyyMMdd_HH_mm_ss').format(DateTime.now());
+      logger.debug('EXPORT: Current timestamp for filename: $dateTime');
 
-    // Get the font scaling factor. Video height / in app height if vertical. Video width / in app width if horizontal.
-    double finalScalingFactor =
-        num.parse(scalingFactor.toStringAsFixed(2)).toDouble();
-    print('Font scaling factor: $scalingFactor');
+      String outputName = '${project.name}_$dateTime';
+      logger.debug('EXPORT: Generating output path for name: $outputName');
+      String outputPath = await generateOutputPath(outputName);
+      logger.info('EXPORT: Output path generated: $outputPath');
 
-    // Get the export options
-    final ExportOptions exportOptions = ExportOptions(
-      videoBitrate: bitrateActive ? Constants.videoBitrates[_bitrate] : '',
-      videoFps: fpsActive ? Constants.videoFps[_fps] : '',
-    );
+      // Get the font scaling factor. Video height / in app height if vertical. Video width / in app width if horizontal.
+      double finalScalingFactor =
+          num.parse(scalingFactor.toStringAsFixed(2)).toDouble();
+      logger.debug('EXPORT: Scaled factor calculated: $finalScalingFactor');
 
-    String path = project.mediaUrl;
+      // Get the export options
+      final ExportOptions exportOptions = ExportOptions(
+        videoBitrate: bitrateActive ? Constants.videoBitrates[_bitrate] : '',
+        videoFps: fpsActive ? Constants.videoFps[_fps] : '',
+      );
+      logger.debug(
+          'EXPORT: Export options: FPS=${exportOptions.videoFps}, Bitrate=${exportOptions.videoBitrate}');
 
-    String command = await generateFFMPEGCommand(
-      path,
-      outputPath,
-      exportVideoDuration,
-      project.transformations,
-      videoWidth,
-      videoHeight,
-      finalScalingFactor,
-      exportOptions,
-    );
+      String path = project.mediaUrl;
+      logger.debug('EXPORT: Project media URL: $path');
 
-    void printWrapped(String text) => RegExp('.{1,800}')
-        .allMatches(text)
-        .map((m) => m.group(0))
-        .forEach(print);
-    // Log the command to be executed and close the bottom sheet
-    printWrapped('Will execute : ffmpeg $command');
-    Get.back();
+      logger.info('EXPORT: Generating FFMPEG command...');
+      String command = await generateFFMPEGCommand(
+        path,
+        outputPath,
+        exportVideoDuration,
+        project.transformations,
+        videoWidth,
+        videoHeight,
+        finalScalingFactor,
+        exportOptions,
+      );
 
-    Get.toNamed(
-      Routes.EXPORT,
-      arguments: {
-        'command': command,
-        'outputPath': outputPath,
-        'videoDuration': afterExportVideoDuration
-      },
-    );
+      void printWrapped(String text) => RegExp('.{1,800}')
+          .allMatches(text)
+          .map((m) => m.group(0))
+          .forEach(print);
+
+      // Log the command to be executed and close the bottom sheet
+      logger.info('EXPORT: FFMPEG command generated successfully');
+      printWrapped('Will execute : ffmpeg $command');
+
+      logger.debug('EXPORT: Closing export bottom sheet');
+      Get.back();
+
+      logger.info('EXPORT: Navigating to EXPORT page');
+      Get.toNamed(
+        Routes.EXPORT,
+        arguments: {
+          'command': command,
+          'outputPath': outputPath,
+          'videoDuration': afterExportVideoDuration
+        },
+      );
+      logger.info('EXPORT: Navigation triggered');
+    } catch (e, stackTrace) {
+      logger.error('EXPORT: CRASH in exportVideo: $e');
+      logger.error('EXPORT: StackTrace: $stackTrace');
+      showSnackbar(
+        Theme.of(Get.context!).colorScheme.error,
+        "Export Failed",
+        "An error occurred while preparing the export: $e",
+        Icons.error_outline,
+      );
+    }
   }
 }
