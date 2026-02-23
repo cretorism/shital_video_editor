@@ -5,7 +5,6 @@ import 'package:ffmpeg_kit_flutter_new/return_code.dart';
 import 'package:ffmpeg_kit_flutter_new/session.dart';
 import 'package:ffmpeg_kit_flutter_new/statistics.dart';
 import 'package:shital_video_editor/shared/core/constants.dart';
-import 'package:shital_video_editor/shared/helpers/ffmpeg.dart';
 import 'package:shital_video_editor/shared/logger_service.dart';
 import 'package:saver_gallery/saver_gallery.dart';
 import 'package:get/get.dart';
@@ -45,21 +44,37 @@ class ExportController extends GetxController {
   }
 
   @override
-  void onInit() async {
+  void onInit() {
     logger.info('EXPORT_CTRL: onInit() started');
     super.onInit();
 
-    try {
-      // Register fonts
-      logger.info('EXPORT_CTRL: Registering fonts...');
-      await registerFonts();
-      logger.info('EXPORT_CTRL: Fonts registered successfully');
+    Future.microtask(() => _startExportProcess());
 
-      // Start the export process
+    // try {
+    //   // Start the export process after a small delay to allow navigation to settle
+    //   logger.info('EXPORT_CTRL: Waiting for navigation to settle...');
+    //   await Future.delayed(const Duration(milliseconds: 500));
+
+    //   logger.info('EXPORT_CTRL: Starting _exportVideo()');
+    //   _exportVideo();
+    // } catch (e, stackTrace) {
+    //   logger.error('EXPORT_CTRL: CRITICAL ERROR in onInit: $e');
+    //   logger.error('EXPORT_CTRL: StackTrace: $stackTrace');
+    //   errorExporting.value = true;
+    //   isExporting.value = false;
+    // }
+  }
+
+  Future<void> _startExportProcess() async {
+    try {
+      logger.info('EXPORT_CTRL: Waiting for navigation to settle...');
+      // Delay ensures the native iOS view is fully loaded before FFmpeg starts
+      await Future.delayed(const Duration(milliseconds: 600));
+
       logger.info('EXPORT_CTRL: Starting _exportVideo()');
-      _exportVideo();
+      await _exportVideo();
     } catch (e, stackTrace) {
-      logger.error('EXPORT_CTRL: CRITICAL ERROR in onInit: $e');
+      logger.error('EXPORT_CTRL: CRITICAL ERROR: $e');
       logger.error('EXPORT_CTRL: StackTrace: $stackTrace');
       errorExporting.value = true;
       isExporting.value = false;
